@@ -1,0 +1,16 @@
+{
+  "name": "conferencemanagement",
+  "version": "1.0.0",
+  "description": "remote test # Intro",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --loader ts-node/esm index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

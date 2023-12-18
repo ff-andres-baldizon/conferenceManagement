@@ -1,5 +1,14 @@
 # conferenceManagement
 remote test
+
+## Available Scripts
+
+In the project directory, you can run:
+
+### `npm start`
+
+Runs the app and logs the output on the console.
+
 # Intro
 
 You can use any tools or resources you like. This includes any gems or stackoverflow, whatever helps you in your day to day you can use here.
