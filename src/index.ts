@@ -48,18 +48,31 @@ const assignSessions = (proposalList: IProposal[], tracks: number) => {
   return (schedule);
 };
 
+const getFormatedTime=(time:Date)=>{
+  let hour = time.getHours();
+  let minutes = Number(time.getMinutes());
+  let meridiem = hour >= 12 ? 'pm' : 'am';
+  hour = hour % 12;
+  hour = hour ? hour : 12;
+  let newm = minutes < 10 ? '0'+minutes: minutes;
+  let formatedTime= hour + ':' + newm + ' ' + meridiem;
+  return formatedTime;
+};
+
 const formatOutput = (proposalList: IProposal[][]) => {
   let formatedOutput = '';
   let trackIndicator = 1;
+  let timeIndicator = new Date("2024-01-01T09:00:00.00"); //the date doesn't matter, just setting the time 
   proposalList.forEach((track: IProposal[]) => {
-    formatedOutput = formatedOutput + `${(trackIndicator===1||trackIndicator===3) ? `Track` : ''} \n`
+    formatedOutput = formatedOutput + `${(trackIndicator===1||trackIndicator===3) ? `\nTrack\n` : ''} \n`
 
     track.forEach((talk) => {
-      //TODO define time format
-      formatedOutput = formatedOutput + `time ${talk.name} \n`
+      formatedOutput = formatedOutput + `${getFormatedTime(timeIndicator)} ${talk.name} \n`
+      timeIndicator = new Date(timeIndicator.getTime() + talk.time*60000);
     })
 
-    formatedOutput = formatedOutput + `${trackIndicator % 2 == 0 ? '05:00PM Networking Event' : '12:00PM Lunch'} \n`
+    timeIndicator = trackIndicator % 2 == 0 ?new Date("2024-01-01T09:00:00.00"):new Date("2024-01-01T13:00:00.00");
+    formatedOutput = formatedOutput + `${trackIndicator % 2 == 0 ? '\n05:00PM Networking Event' : '\n12:00PM Lunch'} \n`
 
     trackIndicator = trackIndicator + 1;
   });
