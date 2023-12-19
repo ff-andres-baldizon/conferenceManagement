@@ -22,24 +22,81 @@ const proccessInput = (input) => {
     });
     return proposalsList;
 };
-// TODO: refine session assigning
+function generatePermutations(inputArray) {
+    if (inputArray.length === 0) {
+        // If the array is empty, return an array with an empty array
+        return [[]];
+    }
+    const result = [];
+    for (let i = 0; i < inputArray.length; i++) {
+        // Remove the current element from the array
+        const rest = [...inputArray.slice(0, i), ...inputArray.slice(i + 1)];
+        // Recursively generate permutations for the remaining elements
+        const permutationsOfRest = generatePermutations(rest);
+        // Add the current element to each permutation of the remaining elements
+        for (const permutation of permutationsOfRest) {
+            result.push([inputArray[i], ...permutation]);
+        }
+    }
+    return result;
+}
+const validateSchedule = (sessions) => {
+    let validSchedule = true;
+    sessions.forEach((session, idx) => {
+        const timeSum = session.reduce((accumulator, object) => {
+            return accumulator + object.time;
+        }, 0);
+        if (timeSum > (idx % 2 ? 240 : 180)) {
+            validSchedule = false;
+        }
+    });
+    return validSchedule;
+};
+const hasEnoughSpace = (session, idx, time) => {
+    const timeSum = session.reduce((accumulator, object) => {
+        return accumulator + object.time;
+    }, 0);
+    return ((timeSum + time) <= (idx % 2 ? 240 : 180));
+};
 const assignSessions = (proposalList, tracks) => {
     const sessions = Math.floor(proposalList.length / (tracks * 2));
     const sortedList = proposalList.sort((a, b) => {
         return b.time - a.time;
     });
-    const schedule = [];
-    let iterator = 0;
-    sortedList.forEach((item) => {
-        if (schedule.length <= iterator) {
-            schedule.push([item]);
+    // split the list to permute a smaller part
+    const mainList = sortedList.slice(0, 10);
+    const pivots = sortedList.slice(10, sortedList.length);
+    const permutationsList = generatePermutations(pivots);
+    let validSchedule = [];
+    permutationsList.forEach((proposedList) => {
+        let testList = [...mainList, ...proposedList];
+        const schedule = [];
+        let bucketCount = 0;
+        let cont = 0;
+        for (cont = 0; cont < testList.length;) {
+            if (schedule[bucketCount]) {
+                if (hasEnoughSpace(schedule[bucketCount], bucketCount, testList[cont].time)) {
+                    schedule[bucketCount].push(testList[cont]);
+                    cont = cont + 1;
+                }
+                else if (!hasEnoughSpace(schedule[bucketCount], bucketCount, testList[cont].time) && bucketCount >= sessions) {
+                    break;
+                }
+                else {
+                    bucketCount = bucketCount + 1;
+                }
+            }
+            else {
+                schedule.push([testList[cont]]);
+                cont = cont + 1;
+            }
         }
-        else {
-            schedule[iterator] = [...schedule[iterator], item];
+        ;
+        if (cont === testList.length && validateSchedule(schedule)) {
+            validSchedule = schedule;
         }
-        iterator = (iterator < sessions - 1) ? iterator + 1 : 0;
     });
-    return (schedule);
+    return validSchedule;
 };
 const getFormatedTime = (time) => {
     let hour = time.getHours();
@@ -54,11 +111,10 @@ const getFormatedTime = (time) => {
 const formatOutput = (proposalList) => {
     let formatedOutput = '';
     let trackIndicator = 1;
-    let timeIndicator = new Date("2024-01-01T09:00:00.00");
+    let timeIndicator = new Date("2024-01-01T09:00:00.00"); //the date doesn't matter, just setting the time 
     proposalList.forEach((track) => {
         formatedOutput = formatedOutput + `${(trackIndicator === 1 || trackIndicator === 3) ? `\nTrack\n` : ''} \n`;
         track.forEach((talk) => {
-            //TODO define time format
             formatedOutput = formatedOutput + `${getFormatedTime(timeIndicator)} ${talk.name} \n`;
             timeIndicator = new Date(timeIndicator.getTime() + talk.time * 60000);
         });
